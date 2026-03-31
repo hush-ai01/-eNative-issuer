@@ -1,0 +1,29 @@
+# Dependency Directories
+node_modules/
+dist/
+build/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Package Manager Cache
+.pnpm-store/
+
+# Project Specific Protection (Private Research)
+docs/
+*.pdf
+*.txt
+*.md
+*.html
+!README.md
+claude_fallback.ps1
+codex_fallback.ps1
+
+# Build Tools & OS
+.DS_Store
+*.log
+.vscode/
+.qodo/
+.gemini/
