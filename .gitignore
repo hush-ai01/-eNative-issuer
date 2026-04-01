@@ -18,6 +18,7 @@ docs/
 *.md
 *.html
 !README.md
+!eNative-app/index.html
 claude_fallback.ps1
 codex_fallback.ps1
 
