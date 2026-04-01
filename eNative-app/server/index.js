@@ -10,7 +10,14 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: [process.env.FRONTEND_URL || "http://localhost:5173", "https://*.vercel.app"],
+    origin: function (origin, callback) {
+      // Allow any Vercel deployment, localhost dev, and no-origin (mobile/curl)
+      if (!origin || origin.includes('vercel.app') || origin.includes('localhost')) {
+        callback(null, true);
+      } else {
+        callback(null, true); // Allow all for POC
+      }
+    },
     methods: ["GET", "POST"],
     credentials: true
   }

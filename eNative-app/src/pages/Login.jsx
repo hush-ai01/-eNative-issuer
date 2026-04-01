@@ -252,27 +252,89 @@ export default function Login() {
         </div>
 
         <div style={{ marginTop: '20px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '20px' }}>
+          <div style={{
+            fontFamily: 'Share Tech Mono, monospace',
+            fontSize: '0.6rem',
+            letterSpacing: '0.15em',
+            color: 'rgba(255,255,255,0.25)',
+            textAlign: 'center',
+            marginBottom: '12px'
+          }}>
+            POC TEST MODE — ENTER YOUR eNUMBER
+          </div>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+            <span style={{
+              padding: '12px 14px',
+              background: '#0c0d12',
+              border: '1px solid rgba(192,132,252,0.2)',
+              borderRadius: '12px 0 0 12px',
+              color: '#c084fc',
+              fontFamily: 'Rajdhani, sans-serif',
+              fontWeight: 700,
+              fontSize: '1rem',
+              display: 'flex',
+              alignItems: 'center'
+            }}>E-</span>
+            <input
+              id="mock-enumber-input"
+              type="text"
+              placeholder="1001"
+              maxLength={4}
+              style={{
+                flex: 1,
+                padding: '12px 14px',
+                background: '#0c0d12',
+                border: '1px solid rgba(192,132,252,0.2)',
+                borderLeft: 'none',
+                borderRadius: '0 12px 12px 0',
+                color: 'rgba(255,255,255,0.93)',
+                fontFamily: 'Share Tech Mono, monospace',
+                fontSize: '1.1rem',
+                letterSpacing: '0.2em',
+                outline: 'none'
+              }}
+            />
+          </div>
           <button
             onClick={() => {
+              const input = document.getElementById('mock-enumber-input');
+              const val = input?.value?.trim();
+              if (!val || val.length < 1) {
+                alert('Enter a number like 1001 or 1002');
+                return;
+              }
               localStorage.clear();
-              const mockNo = Math.floor(1000 + Math.random() * 9000).toString();
-              localStorage.setItem('mock_enumber', mockNo);
+              localStorage.setItem('mock_enumber', val);
               window.location.href = '/dashboard';
             }}
             style={{
-              width: '100%', padding: '12px',
-              background: 'rgba(192,132,252,0.05)',
-              border: '1px solid rgba(192,132,252,0.2)',
+              width: '100%', padding: '14px',
+              background: 'linear-gradient(135deg, rgba(192,132,252,0.15), rgba(96,216,250,0.08))',
+              border: '1px solid rgba(192,132,252,0.3)',
               borderRadius: '12px',
               color: '#c084fc',
-              fontFamily: 'Share Tech Mono, monospace',
-              fontSize: '0.7rem',
+              fontFamily: 'Rajdhani, sans-serif',
+              fontWeight: 700,
+              fontSize: '0.95rem',
               letterSpacing: '0.1em',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              transition: 'all 0.2s'
             }}
           >
-            DEPLOY MOCK AGENT (BYPASS AUTH)
+            LAUNCH AS E-{'{number}'} →
           </button>
+          <div style={{
+            fontFamily: 'Share Tech Mono, monospace',
+            fontSize: '0.55rem',
+            letterSpacing: '0.1em',
+            color: 'rgba(255,255,255,0.18)',
+            textAlign: 'center',
+            marginTop: '10px',
+            lineHeight: '1.8'
+          }}>
+            DEVICE A → E-1001 &nbsp;·&nbsp; DEVICE B → E-1002<br/>
+            DIAL THE OTHER DEVICE'S NUMBER TO CONNECT
+          </div>
         </div>
 
         <div className="terms">

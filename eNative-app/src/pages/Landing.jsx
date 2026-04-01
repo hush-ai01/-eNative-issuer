@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 const css = `
@@ -199,6 +199,7 @@ const cities = [
 
 export default function Landing() {
   const pageRef = useRef(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -248,6 +249,7 @@ const handleWaitlist = async (e) => {
             <div className="nav-right">
               <a href="#features" className="nav-link">FEATURES</a>
               <a href="#badges" className="nav-link">BADGES</a>
+              <span className="nav-link" style={{cursor:'pointer',borderColor:'rgba(192,132,252,0.4)',color:'#c084fc'}} onClick={() => navigate('/login')}>LOGIN →</span>
             </div>
           </nav>
 
@@ -264,7 +266,8 @@ const handleWaitlist = async (e) => {
               eNative gives you a permanent, verified digital phone identity — an eNumber that never gets recycled, never requires a SIM, and works across every border on the planet.
             </p>
             <div className="hero-ctas">
-              <a href="#waitlist" className="btn-primary">CLAIM YOUR eNUMBER →</a>
+              <span className="btn-primary" style={{cursor:'pointer'}} onClick={() => navigate('/login')}>ENTER APP →</span>
+              <a href="#waitlist" className="btn-secondary">JOIN WAITLIST</a>
             </div>
             <div className="hero-stats">
               <div>
