@@ -25,11 +25,12 @@ This repo contains the identity issuer backend for eNative. It handles:
 - [x] .env-issuer configured for local development
 - [x] resolvers_settings.yaml configured
 - [x] Go binary built successfully
+- [x] Fix database connection (API cant resolve postgres hostname in Codespaces)
+- [x] KMS key import (required before issuer can sign credentials)
+- [x] Test first credential issuance end to end
+- [x]Windows local setup documented (Docker Compose path, htpasswd fix, resolvers_settings.yaml setup)
 
 ### In Progress
-- [ ] Fix database connection (API cant resolve postgres hostname in Codespaces)
-- [ ] KMS key import (required before issuer can sign credentials)
-- [ ] Test first credential issuance end to end
 
 ### Still To Build
 - [ ] eNumber to DID linking (Supabase trigger -> issuer API)
