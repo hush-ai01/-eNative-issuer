@@ -40,6 +40,17 @@ This repo contains the identity issuer backend for eNative. It handles:
 - [ ] API key management for B2B partners
 
 ## Running Locally
+### Windows Setup Notes
+### Windows Setup Notes
+- Use `docker compose -f infrastructure/local/docker-compose-full.yml up` instead of `make up`
+- Copy `resolvers_settings_sample.yaml` to `resolvers_settings.yaml` before running
+- After containers start, run this to fix 403 on UI:
+  `docker exec -it local-ui-1 sh -c "htpasswd -cb /etc/nginx/.htpasswd user-issuer password-issuer"`
+- Add these to `.env-ui`:
+  `VITE_API_URL=http://localhost:3001`
+  `VITE_ISSUER_NAME=eNative Issuer`
+  `VITE_IPFS_GATEWAY_URL=https://ipfs.io`
+- Default UI login: user-issuer / password-issuer
 
 ### Prerequisites
 - Docker
