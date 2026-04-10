@@ -28,7 +28,7 @@ This repo contains the identity issuer backend for eNative. It handles:
 - [x] Fix database connection (API cant resolve postgres hostname in Codespaces)
 - [x] KMS key import (required before issuer can sign credentials)
 - [x] Test first credential issuance end to end
-- [x]Windows local setup documented (Docker Compose path, htpasswd fix, resolvers_settings.yaml setup)
+- [x] Windows local setup documented (Docker Compose path, htpasswd fix, resolvers_settings.yaml setup)
 
 ### In Progress
 
