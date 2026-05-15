@@ -1,0 +1,29 @@
+{
+    "@context": [
+        {
+            "@version": 1.1,
+            "@protected": true,
+            "id": "@id",
+            "type": "@type",
+            "eNativeIdentityCredential": {
+                "@id": "https://raw.githubusercontent.com/hush-ai01/-eNative-issuer/main/schemas/eNativeIdentity.jsonld#eNativeIdentityCredential",
+                "@context": {
+                    "@version": 1.1,
+                    "@protected": true,
+                    "id": "@id",
+                    "type": "@type",
+                    "vocab": "https://raw.githubusercontent.com/hush-ai01/-eNative-issuer/main/schemas/eNativeIdentity-vocab.md#",
+                    "xsd": "http://www.w3.org/2001/XMLSchema#",
+                    "eNumber": {
+                        "@id": "vocab:eNumber",
+                        "@type": "xsd:string"
+                    },
+                    "verificationLevel": {
+                        "@id": "vocab:verificationLevel",
+                        "@type": "xsd:integer"
+                    }
+                }
+            }
+        }
+    ]
+}
