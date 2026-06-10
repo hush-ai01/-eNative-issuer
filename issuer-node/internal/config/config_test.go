@@ -129,6 +129,7 @@ func TestLoad(t *testing.T) {
 	assert.Equal(t, 1, cfg.Log.Mode)
 	assert.Equal(t, "user-issuer", cfg.HTTPBasicAuth.User)
 	assert.Equal(t, "password-issuer", cfg.HTTPBasicAuth.Password)
+	assert.Equal(t, "test-api-key-pepper", cfg.APIKey.Pepper)
 	assert.Equal(t, "https://gateway.pinata.cloud", cfg.IPFS.GatewayURL)
 	assert.Equal(t, "https://vault.privado.id", cfg.KeyStore.Address)
 	assert.Equal(t, "iden3", cfg.KeyStore.PluginIden3MountPath)
@@ -254,6 +255,7 @@ func initVariables(t *testing.T) envVarsT {
 		"ISSUER_LOG_MODE":                             "1",
 		"ISSUER_API_AUTH_USER":                        "user-issuer",
 		"ISSUER_API_AUTH_PASSWORD":                    "password-issuer",
+		"ISSUER_API_KEY_PEPPER":                       "test-api-key-pepper",
 		"ISSUER_IPFS_GATEWAY_URL":                     "https://gateway.pinata.cloud",
 		"ISSUER_KEY_STORE_ADDRESS":                    "https://vault.privado.id",
 		"ISSUER_KEY_STORE_PLUGIN_IDEN3_MOUNT_PATH":    "iden3",
