@@ -18,6 +18,7 @@ import (
 	cache2 "github.com/polygonid/sh-id-platform/internal/cache"
 	"github.com/polygonid/sh-id-platform/internal/common"
 	"github.com/polygonid/sh-id-platform/internal/config"
+	"github.com/polygonid/sh-id-platform/internal/core/apikey"
 	"github.com/polygonid/sh-id-platform/internal/core/ports"
 	"github.com/polygonid/sh-id-platform/internal/core/services"
 	"github.com/polygonid/sh-id-platform/internal/db"
@@ -241,6 +242,7 @@ type repos struct {
 	revocation     ports.RevocationRepository
 	displayMethod  ports.DisplayMethodRepository
 	keyRepository  ports.KeyRepository
+	apiKey         ports.APIKeyRepository
 }
 
 type servicex struct {
@@ -252,6 +254,7 @@ type servicex struct {
 	qrs           ports.QrStoreService
 	displayMethod ports.DisplayMethodService
 	keyService    ports.KeyService
+	apiKey        ports.APIKeyService
 }
 
 type infra struct {
@@ -284,6 +287,7 @@ func newTestServer(t *testing.T, st *db.Storage) *testServer {
 		revocation:     repositories.NewRevocation(),
 		displayMethod:  repositories.NewDisplayMethod(*st),
 		keyRepository:  repositories.NewKey(*st),
+		apiKey:         repositories.NewAPIKey(*st),
 	}
 
 	pubSub := pubsub.NewMock()
@@ -372,8 +376,9 @@ func newTestServer(t *testing.T, st *db.Storage) *testServer {
 	accountService := services.NewAccountService(*networkResolver)
 	linkService := services.NewLinkService(storage, claimsService, qrService, repos.claims, repos.links, repos.schemas, schemaLoader, repos.sessions, pubSub, identityService, *networkResolver, cfg.UniversalLinks)
 	keyService := services.NewKey(keyStore, claimsService, repos.keyRepository)
+	apiKeyService := apikey.New(repos.apiKey, "test-api-key-pepper")
 	discoveryService := services.NewDiscovery(mediaTypeManager, packageManager, mediaTypeManager.GetSupportedProtocolMessages())
-	server := NewServer(&cfg, identityService, accountService, connectionService, claimsService, qrService, NewPublisherMock(), packageManager, *networkResolver, nil, schemaService, linkService, displayMethodService, keyService, paymentService, discoveryService)
+	server := NewServer(&cfg, identityService, accountService, connectionService, claimsService, qrService, NewPublisherMock(), packageManager, *networkResolver, nil, schemaService, linkService, displayMethodService, keyService, paymentService, discoveryService, apiKeyService)
 
 	return &testServer{
 		Server: server,
@@ -387,6 +392,7 @@ func newTestServer(t *testing.T, st *db.Storage) *testServer {
 			schema:        schemaService,
 			displayMethod: displayMethodService,
 			keyService:    keyService,
+			apiKey:        apiKeyService,
 		},
 		Infra: infra{
 			db:     st,

@@ -21,6 +21,8 @@ import (
 	"github.com/polygonid/sh-id-platform/internal/buildinfo"
 	"github.com/polygonid/sh-id-platform/internal/cache"
 	"github.com/polygonid/sh-id-platform/internal/config"
+	"github.com/polygonid/sh-id-platform/internal/core/apikey"
+	"github.com/polygonid/sh-id-platform/internal/core/ports"
 	"github.com/polygonid/sh-id-platform/internal/core/services"
 	"github.com/polygonid/sh-id-platform/internal/db"
 	"github.com/polygonid/sh-id-platform/internal/errors"
@@ -115,6 +117,7 @@ func main() {
 	sessionRepository := repositories.NewSessionCached(cachex)
 	keyRepository := repositories.NewKey(*storage)
 	paymentsRepo := repositories.NewPayment(*storage)
+	apiKeyRepository := repositories.NewAPIKey(*storage)
 
 	// services initialization
 	mtService := services.NewIdentityMerkleTrees(mtRepository)
@@ -167,6 +170,7 @@ func main() {
 		return
 	}
 	keyService := services.NewKey(keyStore, claimsService, keyRepository)
+	apiKeyService := apikey.New(apiKeyRepository, cfg.APIKey.Pepper)
 	transactionService, err := gateways.NewTransaction(*networkResolver)
 	discoveryService := services.NewDiscovery(mediaTypeManager, packageManager, mediaTypeManager.GetSupportedProtocolMessages())
 	if err != nil {
@@ -210,8 +214,8 @@ func main() {
 
 	api.HandlerWithOptions(
 		api.NewStrictHandlerWithOptions(
-			api.NewServer(cfg, identityService, accountService, connectionsService, claimsService, qrService, publisher, packageManager, *networkResolver, serverHealth, schemaService, linkService, displayMethodService, keyService, paymentService, discoveryService),
-			middlewares(ctx, cfg.HTTPBasicAuth),
+			api.NewServer(cfg, identityService, accountService, connectionsService, claimsService, qrService, publisher, packageManager, *networkResolver, serverHealth, schemaService, linkService, displayMethodService, keyService, paymentService, discoveryService, apiKeyService),
+			middlewares(ctx, cfg.HTTPBasicAuth, apiKeyService),
 			api.StrictHTTPServerOptions{
 				RequestErrorHandlerFunc:  errors.RequestErrorHandlerFunc,
 				ResponseErrorHandlerFunc: errors.ResponseErrorHandlerFunc,
@@ -240,9 +244,10 @@ func main() {
 	log.Info(ctx, "Shutting down")
 }
 
-func middlewares(ctx context.Context, auth config.HTTPBasicAuth) []api.StrictMiddlewareFunc {
+func middlewares(ctx context.Context, auth config.HTTPBasicAuth, apiKeyService ports.APIKeyService) []api.StrictMiddlewareFunc {
 	return []api.StrictMiddlewareFunc{
 		api.LogMiddleware(ctx),
 		api.BasicAuthMiddleware(ctx, auth.User, auth.Password),
+		api.APIKeyAuthMiddleware(apiKeyService, map[string][]string{}),
 	}
 }

@@ -65,6 +65,12 @@ type Configuration struct {
 	UniversalLinks              UniversalLinks
 	UniversalDIDResolver        UniversalDIDResolver
 	Payments                    Payments
+	APIKey                      APIKey
+}
+
+// APIKey configures partner API-key hashing.
+type APIKey struct {
+	Pepper string `env:"ISSUER_API_KEY_PEPPER"`
 }
 
 // Payments configurations
