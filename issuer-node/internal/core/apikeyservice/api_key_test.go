@@ -53,6 +53,40 @@ func TestAPIKeyAuthenticate_whenScopeIsMissing(t *testing.T) {
 	require.ErrorIs(t, err, apikey.ErrMissingScope)
 }
 
+func TestAPIKeyAuthenticate_whenMultiplePartnersHaveDifferentScopes(t *testing.T) {
+	// Given: two partners with different API keys and different permissions.
+	ctx := context.Background()
+	repo := newFakeAPIKeyRepository()
+	service := apikey.New(repo, "test-pepper")
+	readPartner, err := service.Create(ctx, ports.CreateAPIKeyRequest{
+		PartnerName: "Read Partner",
+		Scopes:      []string{"kyc:read"},
+	})
+	require.NoError(t, err)
+	issuePartner, err := service.Create(ctx, ports.CreateAPIKeyRequest{
+		PartnerName: "Issuer Partner",
+		Scopes:      []string{"credential:issue"},
+	})
+	require.NoError(t, err)
+
+	// When: each partner authenticates against its own allowed scope.
+	readAuth, err := service.Authenticate(ctx, readPartner.Secret, "kyc:read")
+	require.NoError(t, err)
+	issueAuth, err := service.Authenticate(ctx, issuePartner.Secret, "credential:issue")
+	require.NoError(t, err)
+
+	// Then: each secret resolves to its own partner record, not a shared global key.
+	require.NotEqual(t, readAuth.Key.ID, issueAuth.Key.ID)
+	require.Equal(t, "Read Partner", readAuth.Key.PartnerName)
+	require.Equal(t, "Issuer Partner", issueAuth.Key.PartnerName)
+
+	// And: one partner's key cannot be reused for the other's scope.
+	_, err = service.Authenticate(ctx, readPartner.Secret, "credential:issue")
+	require.ErrorIs(t, err, apikey.ErrMissingScope)
+	_, err = service.Authenticate(ctx, issuePartner.Secret, "kyc:read")
+	require.ErrorIs(t, err, apikey.ErrMissingScope)
+}
+
 func TestAPIKeyAuthenticate_whenKeyIsRevoked(t *testing.T) {
 	// Given: a created API key.
 	ctx := context.Background()
