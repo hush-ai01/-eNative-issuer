@@ -15,6 +15,8 @@ import (
 	"github.com/polygonid/sh-id-platform/internal/log"
 )
 
+type apiKeyAuthenticatedContextKey struct{}
+
 // LogMiddleware returns a middleware that adds general log configuration to each context request
 func LogMiddleware(ctx context.Context) StrictMiddlewareFunc {
 	return func(f StrictHandlerFunc, operationID string) StrictHandlerFunc {
@@ -35,6 +37,9 @@ func BasicAuthMiddleware(ctx context.Context, user, pass string) StrictMiddlewar
 	return func(f StrictHandlerFunc, operationID string) StrictHandlerFunc {
 		return func(ctxReq context.Context, w http.ResponseWriter, r *http.Request, args interface{}) (interface{}, error) {
 			if ctxReq.Value(BasicAuthScopes) != nil && user != "" && pass != "" {
+				if authenticated, ok := ctxReq.Value(apiKeyAuthenticatedContextKey{}).(bool); ok && authenticated {
+					return f(ctxReq, w, r, args)
+				}
 				userReq, passReq, ok := r.BasicAuth()
 				if !ok {
 					return nil, apiErrors.AuthError{Err: errors.New("unauthorized")}
@@ -70,7 +75,8 @@ func APIKeyAuthMiddleware(apiKeyService ports.APIKeyService, requiredScopesByOpe
 				}
 				return nil, apiErrors.AuthError{Err: errors.New("unauthorized")}
 			}
-			return f(ctxReq, w, r, args)
+			authenticatedCtx := context.WithValue(ctxReq, apiKeyAuthenticatedContextKey{}, true)
+			return f(authenticatedCtx, w, r, args)
 		}
 	}
 }

@@ -248,6 +248,23 @@ func middlewares(ctx context.Context, auth config.HTTPBasicAuth, apiKeyService p
 	return []api.StrictMiddlewareFunc{
 		api.LogMiddleware(ctx),
 		api.BasicAuthMiddleware(ctx, auth.User, auth.Password),
-		api.APIKeyAuthMiddleware(apiKeyService, map[string][]string{}),
+		api.APIKeyAuthMiddleware(apiKeyService, partnerAPIKeyScopes()),
+	}
+}
+
+func partnerAPIKeyScopes() map[string][]string {
+	return map[string][]string{
+		"CreateCredential":      {"credential:issue"},
+		"GetCredential":         {"kyc:read"},
+		"GetCredentialOffer":    {"kyc:read"},
+		"GetCredentials":        {"kyc:read"},
+		"GetRevocationStatus":   {"kyc:read"},
+		"GetRevocationStatusV2": {"kyc:read"},
+		"RevokeCredential":      {"credential:issue"},
+		"DeleteCredential":      {"credential:issue"},
+		"CreatePaymentRequest":  {"kyc:verify"},
+		"GetPaymentRequest":     {"kyc:read"},
+		"GetPaymentRequests":    {"kyc:read"},
+		"VerifyPayment":         {"kyc:verify"},
 	}
 }
