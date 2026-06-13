@@ -40,6 +40,11 @@ const (
 	APIKeyStatusRevoked APIKeyStatus = "revoked"
 )
 
+// Defines values for B2BKYCVerificationResponseStatus.
+const (
+	CredentialIssued B2BKYCVerificationResponseStatus = "credential_issued"
+)
+
 // Defines values for CreateAuthCredentialRequestCredentialStatusType.
 const (
 	CreateAuthCredentialRequestCredentialStatusTypeIden3OnchainSparseMerkleTreeProof2023 CreateAuthCredentialRequestCredentialStatusType = "Iden3OnchainSparseMerkleTreeProof2023"
@@ -271,6 +276,29 @@ type AuthenticationResponse struct {
 	Message   string     `json:"message"`
 	SessionID UUIDString `json:"sessionID"`
 }
+
+// B2BKYCVerificationRequest defines model for B2BKYCVerificationRequest.
+type B2BKYCVerificationRequest struct {
+	CredentialSchema  string                 `json:"credentialSchema"`
+	CredentialSubject map[string]interface{} `json:"credentialSubject"`
+	ENumber           string                 `json:"eNumber"`
+	Expiration        *int64                 `json:"expiration,omitempty"`
+	SubjectDID        string                 `json:"subjectDID"`
+	Type              string                 `json:"type"`
+	Version           *uint32                `json:"version,omitempty"`
+}
+
+// B2BKYCVerificationResponse defines model for B2BKYCVerificationResponse.
+type B2BKYCVerificationResponse struct {
+	CredentialId string                           `json:"credentialId"`
+	ENumber      string                           `json:"eNumber"`
+	IssuedAt     TimeUTC                          `json:"issuedAt"`
+	Status       B2BKYCVerificationResponseStatus `json:"status"`
+	SubjectDID   string                           `json:"subjectDID"`
+}
+
+// B2BKYCVerificationResponseStatus defines model for B2BKYCVerificationResponse.Status.
+type B2BKYCVerificationResponseStatus string
 
 // BasicMessage defines model for BasicMessage.
 type BasicMessage struct {
@@ -1158,6 +1186,9 @@ type CreateIdentityJSONRequestBody = CreateIdentityRequest
 // UpdateIdentityJSONRequestBody defines body for UpdateIdentity for application/json ContentType.
 type UpdateIdentityJSONRequestBody UpdateIdentityJSONBody
 
+// CreateB2BKYCVerificationJSONRequestBody defines body for CreateB2BKYCVerification for application/json ContentType.
+type CreateB2BKYCVerificationJSONRequestBody = B2BKYCVerificationRequest
+
 // CreateConnectionJSONRequestBody defines body for CreateConnection for application/json ContentType.
 type CreateConnectionJSONRequestBody = CreateConnectionRequest
 
@@ -1253,6 +1284,9 @@ type ServerInterface interface {
 	// Update Identity
 	// (PATCH /v2/identities/{identifier})
 	UpdateIdentity(w http.ResponseWriter, r *http.Request, identifier PathIdentifier)
+	// Create B2B KYC Verification
+	// (POST /v2/identities/{identifier}/b2b/kyc/verifications)
+	CreateB2BKYCVerification(w http.ResponseWriter, r *http.Request, identifier PathIdentifier)
 	// Get Connections
 	// (GET /v2/identities/{identifier}/connections)
 	GetConnections(w http.ResponseWriter, r *http.Request, identifier PathIdentifier, params GetConnectionsParams)
@@ -1505,6 +1539,12 @@ func (_ Unimplemented) GetIdentityDetails(w http.ResponseWriter, r *http.Request
 // Update Identity
 // (PATCH /v2/identities/{identifier})
 func (_ Unimplemented) UpdateIdentity(w http.ResponseWriter, r *http.Request, identifier PathIdentifier) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Create B2B KYC Verification
+// (POST /v2/identities/{identifier}/b2b/kyc/verifications)
+func (_ Unimplemented) CreateB2BKYCVerification(w http.ResponseWriter, r *http.Request, identifier PathIdentifier) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -2202,6 +2242,37 @@ func (siw *ServerInterfaceWrapper) UpdateIdentity(w http.ResponseWriter, r *http
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateIdentity(w, r, identifier)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateB2BKYCVerification operation middleware
+func (siw *ServerInterfaceWrapper) CreateB2BKYCVerification(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "identifier" -------------
+	var identifier PathIdentifier
+
+	err = runtime.BindStyledParameterWithOptions("simple", "identifier", chi.URLParam(r, "identifier"), &identifier, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "identifier", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BasicAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateB2BKYCVerification(w, r, identifier)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -4529,6 +4600,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Patch(options.BaseURL+"/v2/identities/{identifier}", wrapper.UpdateIdentity)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v2/identities/{identifier}/b2b/kyc/verifications", wrapper.CreateB2BKYCVerification)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v2/identities/{identifier}/connections", wrapper.GetConnections)
 	})
 	r.Group(func(r chi.Router) {
@@ -5331,6 +5405,60 @@ func (response UpdateIdentity403JSONResponse) VisitUpdateIdentityResponse(w http
 type UpdateIdentity500JSONResponse struct{ N500CreateIdentityJSONResponse }
 
 func (response UpdateIdentity500JSONResponse) VisitUpdateIdentityResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateB2BKYCVerificationRequestObject struct {
+	Identifier PathIdentifier `json:"identifier"`
+	Body       *CreateB2BKYCVerificationJSONRequestBody
+}
+
+type CreateB2BKYCVerificationResponseObject interface {
+	VisitCreateB2BKYCVerificationResponse(w http.ResponseWriter) error
+}
+
+type CreateB2BKYCVerification201JSONResponse B2BKYCVerificationResponse
+
+func (response CreateB2BKYCVerification201JSONResponse) VisitCreateB2BKYCVerificationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateB2BKYCVerification400JSONResponse struct{ N400JSONResponse }
+
+func (response CreateB2BKYCVerification400JSONResponse) VisitCreateB2BKYCVerificationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateB2BKYCVerification401JSONResponse struct{ N401JSONResponse }
+
+func (response CreateB2BKYCVerification401JSONResponse) VisitCreateB2BKYCVerificationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateB2BKYCVerification422JSONResponse struct{ N422JSONResponse }
+
+func (response CreateB2BKYCVerification422JSONResponse) VisitCreateB2BKYCVerificationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(422)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateB2BKYCVerification500JSONResponse struct{ N500JSONResponse }
+
+func (response CreateB2BKYCVerification500JSONResponse) VisitCreateB2BKYCVerificationResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(500)
 
@@ -7655,6 +7783,9 @@ type StrictServerInterface interface {
 	// Update Identity
 	// (PATCH /v2/identities/{identifier})
 	UpdateIdentity(ctx context.Context, request UpdateIdentityRequestObject) (UpdateIdentityResponseObject, error)
+	// Create B2B KYC Verification
+	// (POST /v2/identities/{identifier}/b2b/kyc/verifications)
+	CreateB2BKYCVerification(ctx context.Context, request CreateB2BKYCVerificationRequestObject) (CreateB2BKYCVerificationResponseObject, error)
 	// Get Connections
 	// (GET /v2/identities/{identifier}/connections)
 	GetConnections(ctx context.Context, request GetConnectionsRequestObject) (GetConnectionsResponseObject, error)
@@ -8267,6 +8398,39 @@ func (sh *strictHandler) UpdateIdentity(w http.ResponseWriter, r *http.Request, 
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(UpdateIdentityResponseObject); ok {
 		if err := validResponse.VisitUpdateIdentityResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateB2BKYCVerification operation middleware
+func (sh *strictHandler) CreateB2BKYCVerification(w http.ResponseWriter, r *http.Request, identifier PathIdentifier) {
+	var request CreateB2BKYCVerificationRequestObject
+
+	request.Identifier = identifier
+
+	var body CreateB2BKYCVerificationJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateB2BKYCVerification(ctx, request.(CreateB2BKYCVerificationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateB2BKYCVerification")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateB2BKYCVerificationResponseObject); ok {
+		if err := validResponse.VisitCreateB2BKYCVerificationResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
