@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>eNative and eoniix KYC Status Report</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172026;
+      --muted: #5a6872;
+      --line: #d8e0e6;
+      --panel: #f7f9fb;
+      --good: #0f7b4f;
+      --warn: #a45d00;
+      --risk: #a12c2f;
+      --focus: #1d5fd1;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #ffffff;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 36px 22px 56px;
+    }
+    header {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 24px;
+      margin-bottom: 24px;
+    }
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.8rem);
+      line-height: 1.05;
+      margin: 0 0 12px;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin: 34px 0 14px;
+      font-size: 1.35rem;
+    }
+    h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+    p { margin: 0 0 12px; }
+    .lede {
+      max-width: 850px;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      background: #fff;
+    }
+    .band {
+      background: var(--panel);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 18px;
+      margin: 24px 0;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      border: 1px solid currentColor;
+      margin-bottom: 10px;
+    }
+    .done { color: var(--good); }
+    .pending { color: var(--warn); }
+    .risk { color: var(--risk); }
+    .info { color: var(--focus); }
+    ul {
+      padding-left: 20px;
+      margin: 8px 0 0;
+    }
+    li { margin: 7px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      text-align: left;
+      vertical-align: top;
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    th {
+      background: var(--panel);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+    code {
+      font-family: "Cascadia Mono", Consolas, monospace;
+      font-size: 0.92em;
+      background: #edf2f6;
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+    .small { color: var(--muted); font-size: 0.9rem; }
+    @media (max-width: 880px) {
+      .grid, .two { grid-template-columns: 1fr; }
+      main { padding: 24px 16px 42px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>eNative issuer and eoniix KYC standing</h1>
+      <p class="lede">Current implementation status, owner voice-note context, and code-quality gaps for the B2B KYC path. The chain direction for new work is Solana; any Polygon wording should be treated as legacy context unless the owner explicitly asks for it.</p>
+      <p class="small">Prepared from local transcripts, local repo inspection, and the current <code>don/b2b-kyc-rest-wrapper</code> branch.</p>
+    </header>
+
+    <section class="grid">
+      <article class="card">
+        <span class="tag done">Complete</span>
+        <h3>API key management</h3>
+        <p>Per-client B2B API keys are merged for <code>-eNative-issuer</code>. Keys are individually hashed, scoped, auditable, rotatable, and revocable.</p>
+      </article>
+      <article class="card">
+        <span class="tag done">Implemented</span>
+        <h3>B2B KYC REST wrapper</h3>
+        <p>The issuer now has a partner-facing route that adapts KYC verification requests into the existing credential issuance pipeline.</p>
+      </article>
+      <article class="card">
+        <span class="tag pending">Needs owner follow-up</span>
+        <h3>eoniix production readiness</h3>
+        <p><code>eoniix-kyc-api</code> is still using sandbox/devnet flows, so it should not be represented as live credential issuance yet.</p>
+      </article>
+    </section>
+
+    <section class="band">
+      <h2>Voice-note takeaways</h2>
+      <ul>
+        <li>The owner asked for a repo check on <code>hush-ai01/eoniix-kyc-api</code>.</li>
+        <li>The main correction was chain direction: move away from Polygon assumptions and align future work to Solana.</li>
+        <li>Known outstanding items from the owner: Solana devnet/test credentials and Dojah sandbox status pending production approval.</li>
+        <li>The owner was not fully certain of every missing item yet and wanted the codebase inspected.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Implementation Added In eNative</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Area</th>
+            <th>Change</th>
+            <th>Why it matters</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>REST wrapper</td>
+            <td><code>POST /v2/identities/{identifier}/b2b/kyc/verifications</code></td>
+            <td>Gives B2B partners a stable KYC-shaped endpoint without bypassing issuer credential validation.</td>
+          </tr>
+          <tr>
+            <td>Credential subject safety</td>
+            <td>Sets missing <code>credentialSubject.id</code> from <code>subjectDID</code> and rejects mismatches.</td>
+            <td>Prevents accidental credential issuance to the wrong DID subject.</td>
+          </tr>
+          <tr>
+            <td>Partner auth</td>
+            <td>Requires <code>kyc:verify</code> and <code>credential:issue</code> scopes for the wrapper operation.</td>
+            <td>Keeps partner access isolated by client and by capability.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>eoniix KYC API Gaps</h2>
+      <div class="grid two">
+        <article class="card">
+          <span class="tag risk">Critical</span>
+          <h3>Sandbox and mock issuance</h3>
+          <p>Dojah sandbox and Solana devnet/mock outputs mean the service is not yet production proof. Responses may look verified while still representing test credentials.</p>
+        </article>
+        <article class="card">
+          <span class="tag risk">Critical</span>
+          <h3>Fake DID fallback</h3>
+          <p>The verify flow can generate a placeholder DID when an eNumber has no DID. That should be replaced by a hard failure or a real call into the issuer DID-linking path.</p>
+        </article>
+        <article class="card">
+          <span class="tag risk">High</span>
+          <h3>Startup/import blockers</h3>
+          <p>The inspected tree references missing modules such as <code>src/middleware/security.js</code> and <code>src/admin/swaggerInternal.js</code>. Those imports can prevent the API from booting cleanly.</p>
+        </article>
+        <article class="card">
+          <span class="tag risk">High</span>
+          <h3>Test quality</h3>
+          <p>Tests appear to hit the live public API and include a fallback live-looking API key. They need local hermetic tests, sandbox integration tests, and secret-free fixtures.</p>
+        </article>
+        <article class="card">
+          <span class="tag pending">Medium</span>
+          <h3>Scope enforcement gap</h3>
+          <p>The repo has per-client API key auth primitives, but route-level scope requirements need to be consistently applied for partner actions.</p>
+        </article>
+        <article class="card">
+          <span class="tag pending">Medium</span>
+          <h3>Operational hygiene</h3>
+          <p>The repo contains a Windows-invalid filename, tracked Supabase temp files, and a committed zip artifact. These make checkout, review, and CI less reliable.</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Recommended Route</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Priority</th>
+            <th>Action</th>
+            <th>Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>P0</td>
+            <td>Make sandbox/devnet status explicit in API responses and docs.</td>
+            <td>Prevents test credentials being mistaken for production credentials.</td>
+          </tr>
+          <tr>
+            <td>P0</td>
+            <td>Remove fake DID generation from KYC verification.</td>
+            <td>Credential issuance must bind to a real subject DID or fail closed.</td>
+          </tr>
+          <tr>
+            <td>P1</td>
+            <td>Fix missing imports and Windows-invalid repository path.</td>
+            <td>The codebase needs clean checkout and boot before deeper QA is meaningful.</td>
+          </tr>
+          <tr>
+            <td>P1</td>
+            <td>Replace live API tests with local route tests and sandbox integration tests.</td>
+            <td>Tests should be deterministic, secret-free, and safe to run in CI.</td>
+          </tr>
+          <tr>
+            <td>P2</td>
+            <td>Move rate limits to a distributed store keyed by API key ID, not raw key text.</td>
+            <td>Supports multi-instance deployment and avoids keeping plaintext key material in memory.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+</body>
+</html>
